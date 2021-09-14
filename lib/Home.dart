@@ -14,6 +14,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
 
   List _listaTarefas = [];
+  Map<String, dynamic> _ultimaTarefaRemovida = Map();
   TextEditingController _controllerTarefa = TextEditingController();
 
 
@@ -82,13 +83,38 @@ class _HomeState extends State<Home> {
     final item = _listaTarefas[index]["titulo"];
 
     return Dismissible(
-        key: Key(item),
+      //sempre irá gerar uma chave diferente para poder reinserir na lista, o item que foi excluído.
+        key: Key(DateTime.now().millisecondsSinceEpoch.toString()),
         direction: DismissDirection.endToStart,
         onDismissed: (direction){
+
+          //recuperar o último item excluido para desfazer
+          _ultimaTarefaRemovida = _listaTarefas[index];
 
           //remove item da lista
           _listaTarefas.removeAt(index);
           _salvarArquivo();
+
+          //snackbar
+          final snackbar = SnackBar(
+            backgroundColor: Colors.green,
+              duration: Duration(seconds: 5),
+              content: Text("Terefa removida"),
+            action: SnackBarAction(
+              label: "Desfazer",
+              onPressed: (){
+
+                //Inserir novamente na lista
+                setState(() {
+                  _listaTarefas.insert(index, _ultimaTarefaRemovida);
+                });
+                _salvarArquivo();
+
+              },
+            ),
+          );
+
+          Scaffold.of(context).showSnackBar(snackbar);
 
         },
         background: Container(
@@ -122,7 +148,7 @@ class _HomeState extends State<Home> {
 
     _salvarArquivo();
 
-    print("itens: " + _listaTarefas.toString());
+    print("itens: " + DateTime.now().millisecondsSinceEpoch.toString());
 
     return Scaffold(
       appBar: AppBar(
